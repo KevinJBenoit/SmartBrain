@@ -4,7 +4,7 @@ import Navigation from './components/Navigation/Navigation';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import Rank from './components/Rank/Rank';
-import FaceRecoginition from './components/FaceRecoginition/FaceRecoginition';
+import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Particles from 'react-particles-js';
 import Clarifai from 'clarifai';
 
@@ -30,7 +30,30 @@ class App extends React.Component {
     this.state = {
       input: '',
       imageUrl: '',
+      box: {},
     }
+  }
+
+
+  calculateFaceLocation = (info) => {
+    const clarifaiFace = info.outputs[0].data.regions[0].region_info.bounding_box;
+    //getting the image, put the id in image tag in FaceRecognition.js
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    //will return an object for the box attribute in state
+    return {
+        leftCol: clarifaiFace.left_col * width,
+        topRow: clarifaiFace.top_row * height,
+        rightCol: width - (clarifaiFace.right_col * width),
+        bottomRow: height - (clarifaiFace.bottom_row * height),
+    }
+  }
+
+  //will set the this.state.box with the data calculated from the calculateFaceLocation function
+  displayFaceBox = (box) => {
+    console.log(box);
+    this.setState({box: box})
   }
 
   //an event listener, part of the App class, must pass event that is happening on an input
@@ -48,12 +71,8 @@ class App extends React.Component {
         this.state.input
     )
     //need to work your way through the response to get the bounding box that we want
-    .then(function(response) {
-        console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
-        },
-        function(err) {
-        }
-    );
+    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
+    .catch(err => console.log(err));
     }
 
   render() {
@@ -65,7 +84,7 @@ class App extends React.Component {
         <Rank />
         {/* passing onInputChange AND onSubmit as a prop to ImageLinkForm (which needs to have these parameters in function defintion) */}
         <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/>
-        <FaceRecoginition imageUrl={this.state.imageUrl}/>
+        <FaceRecognition box={this.state.box} imageUrl={this.state.imageUrl}/>
       </div>
     );
   }
