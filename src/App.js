@@ -29,24 +29,27 @@ class App extends React.Component {
     super();
     this.state = {
       input: '',
+      imageUrl: '',
     }
   }
 
   //an event listener, part of the App class, must pass event that is happening on an input
   onInputChange = (event) => {
-    console.log(event.target.value);
+    this.setState({input: event.target.value});
   }
 
-  onSubmit = () => {
-    console.log('click');
+  onButtonSubmit = () => {
+    this.setState({imageUrl: this.state.input});
     app.models
     .predict(
-    Clarifai.COLOR_MODEL,
+    Clarifai.FACE_DETECT_MODEL,
         // URL
-        "https://samples.clarifai.com/metro-north.jpg"
+        //needs to be input instead of imageUrl (which would give an error b/c React)
+        this.state.input
     )
+    //need to work your way through the response to get the bounding box that we want
     .then(function(response) {
-        console.log(response);
+        console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
         },
         function(err) {
         }
@@ -61,8 +64,8 @@ class App extends React.Component {
         <Logo />
         <Rank />
         {/* passing onInputChange AND onSubmit as a prop to ImageLinkForm (which needs to have these parameters in function defintion) */}
-        <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onSubmit}/>
-        <FaceRecoginition />
+        <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/>
+        <FaceRecoginition imageUrl={this.state.imageUrl}/>
       </div>
     );
   }
