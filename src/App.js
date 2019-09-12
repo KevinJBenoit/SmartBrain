@@ -36,9 +36,25 @@ class App extends React.Component {
       //route keeps track of where we are on the page
       route: 'signin',
       isSignedIn: false,
+      user: {
+        id: 0,
+        email: "",
+        entries: 0,
+        joined: '',
+        name: "",
+      }
     }
   }
 
+  loadUser = (data) => {
+    this.setState({user: {
+      id: data.id,
+      email: data.email,
+      entries: data.entries,
+      joined: data.joined,
+      name: data.name,
+    }})
+  }
 
   calculateFaceLocation = (info) => {
     const clarifaiFace = info.outputs[0].data.regions[0].region_info.bounding_box;
@@ -101,15 +117,15 @@ class App extends React.Component {
         { this.state.route === 'home' 
           ? <div>
               <Logo />
-              <Rank />
+              <Rank name={this.state.user.name} entries={this.state.user.entries}/>
               {/* passing onInputChange AND onSubmit as a prop to ImageLinkForm (which needs to have these parameters in function defintion) */}
               <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/>
               <FaceRecognition box={this.state.box} imageUrl={this.state.imageUrl}/>
             </div>
             : (
               this.state.route === 'signin' 
-              ? <SignIn onRouteChange={this.onRouteChange}/>
-              : <Register onRouteChange={this.onRouteChange}/>
+              ? <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
+              : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
             )
         }
       </div>
