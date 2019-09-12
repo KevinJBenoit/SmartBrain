@@ -56,18 +56,16 @@ class App extends React.Component {
     }})
   }
 
-  calculateFaceLocation = (info) => {
-    const clarifaiFace = info.outputs[0].data.regions[0].region_info.bounding_box;
-    //getting the image, put the id in image tag in FaceRecognition.js
+  calculateFaceLocation = (data) => {
+    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
     const image = document.getElementById('inputimage');
     const width = Number(image.width);
     const height = Number(image.height);
-    //will return an object for the box attribute in state
     return {
-        leftCol: clarifaiFace.left_col * width,
-        topRow: clarifaiFace.top_row * height,
-        rightCol: width - (clarifaiFace.right_col * width),
-        bottomRow: height - (clarifaiFace.bottom_row * height),
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
     }
   }
 
@@ -85,16 +83,29 @@ class App extends React.Component {
   onButtonSubmit = () => {
     this.setState({imageUrl: this.state.input});
     app.models
-    .predict(
-    Clarifai.FACE_DETECT_MODEL,
-        // URL
-        //needs to be input instead of imageUrl (which would give an error b/c React)
-        this.state.input
-    )
-    //need to work your way through the response to get the bounding box that we want
-    .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-    .catch(err => console.log(err));
-    }
+      .predict(
+        Clarifai.FACE_DETECT_MODEL,
+        this.state.input)
+      .then(response => {
+        if (response) {
+          fetch('http://localhost:3000/image', {
+            method: 'put',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              id: this.state.user.id
+            })
+          })
+            .then(response => response.json())
+            //the 'count' is the entries response from server.js that we made, check app.put './image and see its being returned as res.json
+            .then(count => {
+              this.setState(Object.assign(this.state.user, { entries: count}))
+            })
+
+        }
+        this.displayFaceBox(this.calculateFaceLocation(response))
+      })
+      .catch(err => console.log(err));
+  }
 
   // function for changing the page after singing in
   onRouteChange = (route) => {
