@@ -25,25 +25,28 @@ const particleOptions = {
   }
 }
 
+const initialState = {
+
+    input: '',
+    imageUrl: '',
+    box: {},
+    //route keeps track of where we are on the page
+    route: 'signin',
+    isSignedIn: false,
+    user: {
+      id: 0,
+      email: "",
+      entries: 0,
+      joined: '',
+      name: "",
+    }
+}
+
 //we need state so its a class
 class App extends React.Component {
   constructor() {
     super();
-    this.state = {
-      input: '',
-      imageUrl: '',
-      box: {},
-      //route keeps track of where we are on the page
-      route: 'signin',
-      isSignedIn: false,
-      user: {
-        id: 0,
-        email: "",
-        entries: 0,
-        joined: '',
-        name: "",
-      }
-    }
+    this.state = initialState;
   }
 
   loadUser = (data) => {
@@ -100,7 +103,7 @@ class App extends React.Component {
             .then(count => {
               this.setState(Object.assign(this.state.user, { entries: count}))
             })
-
+            .catch(console.log)
         }
         this.displayFaceBox(this.calculateFaceLocation(response))
       })
@@ -110,8 +113,8 @@ class App extends React.Component {
   // function for changing the page after singing in
   onRouteChange = (route) => {
     if (route === 'signout') {
-      this.setState({isSignedIn: false})
-    } else {
+      this.setState(initialState)
+    } else if (route === 'home') {
       this.setState({isSignedIn: true})
     }
 
